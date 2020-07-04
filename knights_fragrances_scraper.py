@@ -1,3 +1,4 @@
+import csv
 import sys
 
 import requests
@@ -80,6 +81,7 @@ class KnightsFragrances:
                     for product in products:
                         self.products.append({
                             'category': category['title'],
+                            'url': category['url'],
                             'brand': brand,
                             'code': product.find('div', {'data-title': 'Product Code'}).text.strip(),
                             'name': product.find('div', {'data-title': 'Product Name'}).text.strip(),
@@ -93,24 +95,30 @@ class KnightsFragrances:
             for i, product_link in enumerate(product_links):
                 response = self.session.get(product_link)
                 soup = BeautifulSoup(response.content, 'html.parser')
-                code = soup.find('span', {'class': 'rte_lbl'}, string='Code :').find_parent().text
-                code = code[code.index(':') + 1:]
-                self.products.append({
-                    'category': category['title'],
-                    'brand': '',
-                    'code': code,
-                    'name': soup.find('h1', {'class': 'hd_typ2'}).text.strip(),
-                    'suggested_price': soup.find('span',
-                                                 {'class': 'rte_lbl'},
-                                                 string='Retail Price :').find_next_sibling().text,
-                    'price': soup.find('span', {'class': 'rte_lbl'}, string='Cost :').find_next_sibling().text,
-                })
+
+                try:
+                    code = soup.find('span', {'class': 'rte_lbl'}, string='Code :').find_parent().text
+                    code = code[code.index(':') + 1:]
+                    self.products.append({
+                        'category': category['title'],
+                        'url': category['url'],
+                        'brand': '',
+                        'code': code,
+                        'name': soup.find('h1', {'class': 'hd_typ2'}).text.strip(),
+                        'suggested_price': soup.find('span',
+                                                     {'class': 'rte_lbl'},
+                                                     string='Retail Price :').find_next_sibling().text,
+                        'price': soup.find('span', {'class': 'rte_lbl'}, string='Cost :').find_next_sibling().text,
+                    })
+                except:
+                    pass
+
                 sys.stdout.write(f'\r{i + 1} out of {product_count} products scraped')
                 sys.stdout.flush()
             sys.stdout.write('\r')
             sys.stdout.flush()
 
-        pprint(self.products)
+        # pprint(self.products)
         print(f'{len(self.products)} products found')
 
     def test(self):
@@ -125,9 +133,28 @@ class KnightsFragrances:
         code = code[code.index(':') + 1:]
         print(code)
 
+    def save_as_csv(self):
+        headers = ['Code', 'Title', 'Link', 'Category', 'Brand', 'Price', 'Suggested Price']
+        with open('knights_fragrances.csv', 'w', encoding='utf-8-sig', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(headers)
+            for product in self.products:
+                writer.writerow([
+                    product['code'],
+                    product['name'],
+                    product['url'],
+                    product['category'],
+                    product['brand'],
+                    product['price'],
+                    product['suggested_price'],
+                ])
+
 
 if __name__ == '__main__':
     kf = KnightsFragrances()
     kf.login()
     kf.get_categories()
-    kf.get_products_from_category(kf.categories[4])
+    for category in kf.categories:
+        kf.get_products_from_category(category)
+    kf.save_as_csv()
+    print('csv data saved')
