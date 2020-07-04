@@ -1,6 +1,5 @@
 import csv
 import sys
-
 import requests
 import config
 from bs4 import BeautifulSoup
@@ -70,7 +69,7 @@ class KnightsFragrances:
         soup = BeautifulSoup(response.content, 'html.parser')
         if len(soup.find_all('div', {'class': 'pdct_tble'})) > 0:
             # when the category has product table
-            for PAGE_INDEX in self.PAGE_INDEXES:
+            for i, PAGE_INDEX in enumerate(self.PAGE_INDEXES):
                 url = f'{category["url"]}?prodGroup={PAGE_INDEX}'
                 response = self.session.get(url)
                 soup = BeautifulSoup(response.content, 'html.parser')
@@ -88,6 +87,10 @@ class KnightsFragrances:
                             'suggested_price': product.find('div', {'data-title': 'RRP* (£)'}).text.strip(),
                             'price': product.find('div', {'data-title': 'Price* (£)'}).text.strip(),
                         })
+                sys.stdout.write(f'\r{i + 1} out of {len(self.PAGE_INDEXES)} pages scraped')
+                sys.stdout.flush()
+            sys.stdout.write('\r')
+            sys.stdout.flush()
         else:
             # when the category does not have product table
             product_links = [pr['href'] for pr in soup.find_all('a', {'class': 'gft_wrap'})]
@@ -119,19 +122,7 @@ class KnightsFragrances:
             sys.stdout.flush()
 
         # pprint(self.products)
-        print(f'{len(self.products)} products found')
-
-    def test(self):
-        res = self.session.get('https://www.knights-fragrances'
-                               '.co.uk/4711-display-3-x-body-s'
-                               'pray-100ml-3-x-cologne-stick-20'
-                               'ml-3-x-watch-bottle-3-x-tissues'
-                               '-2-x-cologne-100ml-spray')
-
-        soup = BeautifulSoup(res.content, 'html.parser')
-        code = soup.find('span', {'class': 'rte_lbl'}, string='Code :').find_parent().text
-        code = code[code.index(':') + 1:]
-        print(code)
+        print(f'{len(self.products)} products found                      ')
 
     def save_as_csv(self):
         headers = ['Code', 'Title', 'Link', 'Category', 'Brand', 'Price', 'Suggested Price']
