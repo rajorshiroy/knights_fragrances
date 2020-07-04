@@ -1,5 +1,7 @@
 import requests
 import config
+from bs4 import BeautifulSoup
+from pprint import pprint
 
 
 class KnightsFragrances:
@@ -7,6 +9,7 @@ class KnightsFragrances:
         self.email = config.email
         self.password = config.password
         self.session = None
+        self.categories = None
 
     def login(self):
         print('logging in...')
@@ -39,7 +42,16 @@ class KnightsFragrances:
             print('failed to log in.')
             quit()
 
+    def get_categories(self):
+        response = self.session.get('https://www.knights-fragrances.co.uk/womens-perfumes-wholesaler')
+        soup = BeautifulSoup(response.content, 'html.parser')
+        product_categories = soup.find('ul', {'class': 'ctgry_lst'}).find_all('li')
+        self.categories = [{product_box.find('a')['title']: product_box.find('a')['href']} for product_box in
+                           product_categories]
+        print(f'{len(self.categories)} categories found')
+
 
 if __name__ == '__main__':
     kf = KnightsFragrances()
     kf.login()
+    kf.get_categories()
