@@ -1,10 +1,10 @@
 import csv
 import sys
-import requests
 import config
-from bs4 import BeautifulSoup
-from pprint import pprint
 import string
+import requests
+
+from bs4 import BeautifulSoup
 
 
 class KnightsFragrances:
