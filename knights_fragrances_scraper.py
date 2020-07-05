@@ -64,7 +64,7 @@ class KnightsFragrances:
         print(f'{len(self.categories)} categories found')
 
     def get_products_from_category(self, category):
-        print(f'getting froducts from: {category["title"]}')
+        print(f'getting products from: {category["title"]}')
         response = self.session.get(category['url'])
         soup = BeautifulSoup(response.content, 'html.parser')
         if len(soup.find_all('div', {'class': 'pdct_tble'})) > 0:

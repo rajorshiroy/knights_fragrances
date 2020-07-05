@@ -144,3 +144,5 @@ config.py
 *.csv
 *.json
 .idea/
+*.bat
+*.cmd
